@@ -2,14 +2,14 @@ import jwt from 'jsonwebtoken'
 import Users from '../models/Users.js'
 
 const createToken = (id, rol) => {
-  return jwt.sign({ id, rol }, process.env.JWT_SECRET, { expiresIn: '1h' })
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1h' })
 }
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Token no proporcionado.' })
+    return res.status(401).json({ errors: [{ msg: 'Token no proporcionado.' }] })
   }
 
   const { authorization } = req.headers
@@ -20,7 +20,7 @@ const verifyToken = async (req, res, next) => {
     next()
   } catch (err) {
     const e = new Error('Token no válido')
-    return res.status(401).json({ message: e.message })
+    return res.status(401).json({ errors: [{ msg: e.message }] })
   }
 }
 
@@ -32,7 +32,7 @@ const verifyRoles = (...allowedRoles) => {
     if (user && allowedRoles.includes(user.rol)) {
       next()
     } else {
-      res.status(403).json({ message: 'Acceso denegado: no tienes permiso para acceder a este recurso.' })
+      res.status(403).json({ errors: [{ msg: 'Acceso denegado: no tienes permiso para acceder a este recurso.' }] })
     }
   }
 }

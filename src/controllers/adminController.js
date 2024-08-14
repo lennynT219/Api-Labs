@@ -36,6 +36,16 @@ const getAllUsers = async (req, res) => {
   }
 }
 
+const getAllPasante = async (req, res) => {
+  try {
+    const users = await User.find({ rol: { $in: ['Pasante', 'Estudiante'] } })
+
+    res.status(200).json(users)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params
@@ -78,8 +88,15 @@ const deleteUser = async (req, res) => {
 
 const getAllQuejas = async (req, res) => {
   try {
-    const quejass = await Quejas.find()
-    res.status(200).json(quejass)
+    const quejas = await Quejas.find()
+    const quejasFormat = quejas.map(queja => ({
+      id: queja._id,
+      titulo: queja.title,
+      descripcion: queja.description,
+      fecha: queja.createdAt.toISOString().split('T')[0],
+      estado: queja.status
+    }))
+    res.status(200).json(quejasFormat)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -101,19 +118,21 @@ const updateQuejasStatus = async (req, res) => {
     const { id } = req.params
     const { status } = req.body
     const quejas = await Quejas.findByIdAndUpdate(id, { status }, { new: true })
-    res.status(200).json({ message: 'Queja actualizada', quejas })
+    res.status(200).json({ errors: [{ msg: 'Queja actualizada' }] })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ errors: [{ msg: err.message }] })
   }
 }
 
 const createTarea = async (req, res) => {
   try {
+    if (Object.values(req.body).includes('')) return res.status(400).json({ errors: [{ msg: 'Porfavor llene todos los campos' }] })
     const tarea = new Tareas(req.body)
     await tarea.save()
-    res.status(200).json({ message: 'Tarea creada', tarea })
+    await User.findByIdAndUpdate(tarea.asignada_a, { rol: 'Pasante' })
+    res.status(200).json({ errors: [{ msg: 'Tarea creada' }] })
   } catch (err) {
-    res.status(500).json({ message: err.message })
+    res.status(500).json({ errors: [{ msg: err.message }] })
   }
 }
 
@@ -121,6 +140,29 @@ const getAllTareas = async (req, res) => {
   try {
     const tareas = await Tareas.find()
     res.status(200).json(tareas)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+const getTareaOfQueja = async (req, res) => {
+  try {
+    const { id } = req.params
+    const tareas = await Tareas.find({ queja_id: id })
+    const tareaFormat = await Promise.all(tareas.map(async tarea => {
+      const responsable = await User.findById(tarea.asignada_a)
+      return {
+        id: tarea._id,
+        titulo: tarea.title,
+        descripcion: tarea.description,
+        fecha: tarea.createdAt.toISOString().split('T')[0],
+        estado: tarea.status,
+        responsable: `${responsable.nombres} ${responsable.apellidos}`,
+        img: tarea.img_tarea
+      }
+    }))
+    console.log(tareaFormat)
+    res.status(200).json(tareaFormat)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -160,5 +202,7 @@ export {
   createTarea,
   getAllTareas,
   getTareaById,
-  updateTareaStatus
+  updateTareaStatus,
+  getTareaOfQueja,
+  getAllPasante
 }

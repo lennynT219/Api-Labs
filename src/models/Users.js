@@ -2,13 +2,19 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
 
 const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  cedula: { type: String, required: true, unique: true },
+  nombres: { type: String, required: true },
+  apellidos: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  rol: { type: String, enum: ['admin', 'docente', 'estudiante', 'pasante'] }, // Define roles posibles
+  genero: { type: String, enum: ['M', 'F', 'O'] },
+  facultad: { type: String, required: true },
+  rol: { type: String, enum: ['Admin', 'Docente', 'Estudiante', 'Pasante'] }, // Define roles posibles
   username: { type: String, required: true, unique: true },
   token: { type: String, default: null },
-  confirmEmail: { type: Boolean, default: false }
+  confirmEmail: { type: Boolean, default: false },
+  img_pefil: { type: String, default: null },
+  img_pefil_id: { type: String, default: null }
 }, { timestamps: true })
 
 // Encriptar contraseña

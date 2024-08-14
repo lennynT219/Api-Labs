@@ -4,8 +4,8 @@ import { verifyRoles, verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 
-router.get('/tareas', verifyToken, verifyRoles('pasante'), getallTareas)
-router.get('/tareas/:id', verifyToken, verifyRoles('pasante'), getTareaById)
-router.put('/tareas/:id', verifyToken, verifyRoles('pasante'), updateTareaStatus)
+router.get('/tareas', verifyToken, verifyRoles('Pasante'), getallTareas)
+router.get('/tareas/:id', verifyToken, verifyRoles('Pasante'), getTareaById)
+router.put('/tareas/:id', verifyToken, verifyRoles('Pasante'), updateTareaStatus)
 
 export default router
